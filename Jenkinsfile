@@ -26,7 +26,7 @@ pipeline {
                         mvn clean verify sonar:sonar \
                         -DskipTests \
                         -Dsonar.projectKey=soumya1312shekar_java \
-                        -Dsonar.organization=YOUR_REAL_ORG_KEY \
+                        -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
                         -Dsonar.login=$SONAR_TOKEN
                         '''
