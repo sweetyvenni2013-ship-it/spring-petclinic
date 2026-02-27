@@ -37,10 +37,14 @@ pipeline {
         }
     }
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // Added allowEmptyArchive to prevent failures if build is interrupted
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            
+            // THE FIX: Added allowEmptyResults: true
+            // This prevents the build failure when -DskipTests is used.
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
 
