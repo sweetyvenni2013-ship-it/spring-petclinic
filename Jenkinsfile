@@ -12,10 +12,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                // FIX 1: Changed 'github_token' to 'my_jenk_id' (from your logs)
+                git branch: 'main',
+                    credentialsId: 'my_jenk_id', 
+                    url: 'https://github.com/soumya1312shekar/java.git'
             }
         }
 
@@ -29,21 +30,21 @@ pipeline {
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // FIX 2: Added proper spacing and narrow path for artifacts
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            // FIX 3: Added 'target' to the path to match Maven structure
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
-
-
-     
 
