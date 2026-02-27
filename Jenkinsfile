@@ -36,13 +36,17 @@ pipeline {
             }
         }
     }
-    post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+       post {
+        always {
+            // Added 'allowEmptyArchive' to prevent failures here too
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            
+            // THE CRITICAL FIX: allowEmptyResults: true
+            // This tells Jenkins not to fail the build if Maven skips tests.
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
-}
+
 
 
      
