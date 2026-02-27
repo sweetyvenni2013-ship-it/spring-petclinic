@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout') {
     steps {
         git branch: 'main',
-            credentialsId: 'github_token',
+            credentialsId: 'github_auth',
             url: 'https://github.com/soumya1312shekar/java.git'
             }
         }
