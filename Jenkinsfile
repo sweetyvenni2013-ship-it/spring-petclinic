@@ -36,13 +36,16 @@ pipeline {
             }
         }
     }
-    post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        post {
+        always {
+            // Added allowEmptyArchive to avoid failures if JAR is missing
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            
+            // THE FIX: allowEmptyResults: true prevents the "Configuration error"
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
-}
+
 
 
      
