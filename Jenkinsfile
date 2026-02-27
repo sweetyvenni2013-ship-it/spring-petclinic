@@ -12,10 +12,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                // Using 'github_token' as verified in your credentials screenshot
+                git branch: 'main',
+                    credentialsId: 'github_token', 
+                    url: 'https://github.com'
             }
         }
 
@@ -23,26 +24,33 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonar_id', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SONAR') {
+                        // REMOVED: -DskipTests to allow test execution and report generation
                         sh '''
                         mvn clean verify sonar:sonar \
-                        -DskipTests \
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // Archives the JAR file created in the target folder
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            
+            // Collects the JUnit XML reports generated because we REMOVED -DskipTests
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
+
+  
+  
 
 
      
