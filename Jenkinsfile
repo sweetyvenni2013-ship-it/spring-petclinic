@@ -12,15 +12,17 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                // Ensure 'github_token' is created in Jenkins Credentials as Secret Text or Username/Password
+                git branch: 'main',
+                    credentialsId: 'github_token', 
+                    url: 'https://github.com/soumya1312shekar/java.git'
             }
         }
 
         stage('Build & Sonar Scan') {
             steps {
+                // Using the specific variable name SONAR_TOKEN to match your mvn command
                 withCredentials([string(credentialsId: 'sonar_id', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SONAR') {
                         sh '''
@@ -29,20 +31,26 @@ pipeline {
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // Added proper spacing and null-safety for reports
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+        }
     }
 }
+
+
+   
+  
 
 
      
