@@ -12,10 +12,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                // Changed from github_token to my_jenk_id as per your logs
+                git branch: 'main',
+                    credentialsId: 'my_jenk_id', 
+                    url: 'https://github.com/soumya1312shekar/java.git'
             }
         }
 
@@ -29,20 +30,27 @@ pipeline {
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // Corrected paths for Spring Petclinic structure
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
+
+    
+               
+ 
+
 
 
      
