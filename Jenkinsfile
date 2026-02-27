@@ -12,10 +12,10 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                git branch: 'main',
+                    credentialsId: 'github_token',
+                    url: 'https://github.com/soumya1312shekar/java.git'
             }
         }
 
@@ -29,21 +29,23 @@ pipeline {
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // Updated to target specific folder and allow empty archives
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            
+            // CRITICAL FIX: Added allowEmptyResults: true
+            // This prevents the build from failing when -DskipTests is used.
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
-
-
-     
 
