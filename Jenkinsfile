@@ -12,10 +12,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                // FIXED: Changed to 'github_auth' to match your working Jenkins UI configuration
+                git branch: 'main',
+                    credentialsId: 'github_auth', 
+                    url: 'https://github.com/soumya1312shekar/java.git'
             }
         }
 
@@ -29,20 +30,25 @@ pipeline {
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            
+            // FIXED: Added allowEmptyResults: true 
+            // This prevents the build from failing because you used -DskipTests
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
+
 
 
      
