@@ -12,10 +12,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main',
-            credentialsId: 'github_token',
-            url: 'https://github.com/soumya1312shekar/java.git'
+            steps {
+                // Using 'my_jenk_id' as verified in your Jenkins logs
+                git branch: 'main',
+                    credentialsId: 'my_jenk_id', 
+                    url: 'https://github.com'
             }
         }
 
@@ -29,21 +30,26 @@ pipeline {
                         -Dsonar.projectKey=soumya1312shekar_java \
                         -Dsonar.organization=soumya1312shekar-1 \
                         -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
+                        -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
     }
+    
     post {
-        always{
-            archiveArtifacts artifacts: '**/*.jar'
-            junit '**/surefire-reports/*.xml'
-}
+        always {
+            // Archives the JAR file created in the target folder
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            // Records the test results from the surefire reports
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+        }
     }
 }
 
+
+  
 
      
 
