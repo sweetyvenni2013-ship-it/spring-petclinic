@@ -1,6 +1,11 @@
 pipeline {
     agent { label 'spc' }
     
+    // 1. ADDED: This forces Jenkins to use the JDK 25 you configured in Global Tools
+    tools {
+        jdk 'Java25' 
+    }
+    
     triggers {
         pollSCM('* * * * *')
     }
@@ -8,8 +13,7 @@ pipeline {
     stages {
         stage('Git Checkout') {   
             steps {
-                // Fixed: Added comma after URL to prevent syntax errors
-                git url: 'https://github.com/soumya1312shekar/java.git', branch: 'main'
+                git url: 'https://github.com', branch: 'main'
             }
         }
 
@@ -51,7 +55,7 @@ pipeline {
                 docker image pull nginx:1.30
                 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 
-                # Fixed: Removed '://' and added a repository name (e.g., /my-app)
+                # 2. FIXED: Removed '://' and added a repository name (e.g., /my-app)
                 docker tag nginx:1.30 ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 docker push ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 """
@@ -61,7 +65,6 @@ pipeline {
 
     post {
         always {
-            // Added allowEmptyArchive to prevent failure if the build fails before JAR creation
             archiveArtifacts artifacts: '**/*.jar', allowEmptyArchive: true
             junit '**/surefire-reports/*.xml'
             sh "docker logout || true"
