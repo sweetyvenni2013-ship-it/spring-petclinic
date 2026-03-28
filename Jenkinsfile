@@ -8,22 +8,23 @@ pipeline {
     stages {
         stage('Git Checkout') {   
             steps {
-                // Fixed: Added comma after URL to prevent syntax errors
                 git url: 'https://github.com/soumya1312shekar/java.git', branch: 'main'
             }
         }
 
         stage('Build and Scan') {
             steps {
-                withCredentials([string(credentialsId: 'sonar_sonar', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SONAR') {
-                        sh """
-                        mvn package sonar:sonar \
-                        -Dsonar.projectKey=soumya1312shekar_java \
-                        -Dsonar.organization=soumya1312shekar-1 \
-                        -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=${SONAR_TOKEN}
-                        """
+                script {
+                    withCredentials([string(credentialsId: 'sonar_sonar', variable: 'SONAR_TOKEN')]) {
+                        withSonarQubeEnv('SONAR') {
+                            // Added -DskipTests if you want to speed up the scan, 
+                            // or leave as is to include test results in SonarCloud
+                            sh "mvn package sonar:sonar \
+                                -Dsonar.projectKey=soumya1312shekar_java \
+                                -Dsonar.organization=soumya1312shekar-1 \
+                                -Dsonar.host.url=https://sonarcloud.io \
+                                -Dsonar.login=${SONAR_TOKEN}"
+                        }
                     }
                 }
             }
@@ -37,22 +38,21 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                    echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-                    docker build -t ${DOCKER_USER}/java-app:${env.BUILD_ID} .
-                    docker push ${DOCKER_USER}/java-app:${env.BUILD_ID}
+                    echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+                    docker build -t "${DOCKER_USER}/java-app:${env.BUILD_ID}" .
+                    docker push "${DOCKER_USER}/java-app:${env.BUILD_ID}"
                     """
                 }
             }
         }
 
-        stage('ECR Push and Hub Pull') {
+        stage('ECR Push') {
             steps {
                 sh """
-                docker image pull nginx:1.30
+                # Authenticate and Push to ECR (ensure repository 'java-repo' exists)
                 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 271071982991.dkr.ecr.ap-south-1.amazonaws.com
-                
-                # Fixed: Removed '://' and added a repository name (e.g., /my-app)
-                docker tag nginx:1.30 ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
+                docker image pull nginx:1.25
+                docker tag nginx:1.25 ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 docker push ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 """
             }
@@ -61,9 +61,9 @@ pipeline {
 
     post {
         always {
-            // Added allowEmptyArchive to prevent failure if the build fails before JAR creation
-            archiveArtifacts artifacts: '**/*.jar', allowEmptyArchive: true
-            junit '**/surefire-reports/*.xml'
+            // Use precise target path for spring-petclinic
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            junit '**/target/surefire-reports/*.xml'
             sh "docker logout || true"
         }
     }
