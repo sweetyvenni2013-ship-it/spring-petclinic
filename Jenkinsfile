@@ -13,17 +13,33 @@ pipeline {
             }
         }
 
-        stage('Build and Scan') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar_sonar', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SONAR') {
-                        sh """
-                        mvn package sonar:sonar \
-                        -Dsonar.projectKey=soumya1312shekar_java \
-                        -Dsonar.organization=soumya1312shekar-1 \
-                        -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=${SONAR_TOKEN}
-                        """
+       // Defines the stage for compiling the code and running security/quality analysis
+stage('Build and Scan') {
+    steps {
+        // Uses a script block to allow for more complex logic within the stage
+        script {
+            // Securely injects the SonarCloud token from Jenkins credentials manager
+            withCredentials([string(credentialsId: 'sonar_sonar', variable: 'SONAR_TOKEN')]) {
+                
+                // Configures the environment to use the 'SONAR' server defined in Jenkins settings
+                withSonarQubeEnv('SONAR') {
+                    
+                    // Runs Maven to:
+                    // 1. package: Compile and build the JAR file
+                    // 2. sonar:sonar: Push the results to SonarCloud for analysis
+                    sh """
+                    mvn package sonar:sonar \
+                    -Dsonar.projectKey=soumya1312shekar_java \
+                    -Dsonar.organization=soumya1312shekar-1 \
+                    -Dsonar.host.url=https://sonarcloud.io \
+                    -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
+    }
+}
+
                     }
                 }
             }
