@@ -48,11 +48,11 @@ pipeline {
         stage('ECR Push and Hub Pull') {
             steps {
                 sh """
-                docker image pull nginx:1.30
+                docker image pull nginx:1.25
                 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 
                 # Fixed: Removed '://' and added a repository name (e.g., /my-app)
-                docker tag nginx:1.30 ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
+                docker tag nginx:1.25 ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 docker push ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 """
             }
