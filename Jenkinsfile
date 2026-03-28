@@ -8,7 +8,6 @@ pipeline {
     stages {
         stage('Git Checkout') {   
             steps {
-                // Fixed: Added comma after URL to prevent syntax errors
                 git url: 'https://github.com/soumya1312shekar/java.git', branch: 'main'
             }
         }
@@ -31,6 +30,7 @@ pipeline {
 
         stage('Docker Hub Login & Push') {
             steps {
+                // Securely use Docker Hub credentials via environment variables
                 withCredentials([usernamePassword(
                     credentialsId: 'd3d6bc96-8f86-4e2e-acf6-ccb785b65c88',
                     usernameVariable: 'DOCKER_USER',
@@ -47,11 +47,10 @@ pipeline {
 
         stage('ECR Push and Hub Pull') {
             steps {
+                // Moved from nested position into its own stage
                 sh """
                 docker image pull nginx:1.30
                 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 271071982991.dkr.ecr.ap-south-1.amazonaws.com
-                
-                # Fixed: Removed '://' and added a repository name (e.g., /my-app)
                 docker tag nginx:1.30 ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 docker push ://271071982991.dkr.ecr.ap-south-1.amazonaws.com
                 """
@@ -61,9 +60,9 @@ pipeline {
 
     post {
         always {
-            // Added allowEmptyArchive to prevent failure if the build fails before JAR creation
-            archiveArtifacts artifacts: '**/*.jar', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/*.jar'
             junit '**/surefire-reports/*.xml'
+            // Cleanup: Logout to clear credentials from the agent
             sh "docker logout || true"
         }
     }
